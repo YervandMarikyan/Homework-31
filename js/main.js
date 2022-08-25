@@ -5,15 +5,24 @@
 //	2․ ստեղծում եք ֆունկցիոնալ, որ ցուցակում 20ից ավել ֆիլմ չլինի, բայց ֆիլմերը պահպանվեն 
 //	տվյալների բազայում, ու ամեն մուտքի ժամանակ ֆիլմերի անունները պետք ա ռանդոմ ցույց տա էդ 
 //	20 հատի մեջ, եթե 20ից քիչ են ֆիլմերը ապա ռանդոմը չպետք ա աշխատի, ռանդոմի ժամանակ պետք ա նորից սորտավորվեն
+
 const headerImage = document.querySelector("header img");
-const adv = document.querySelectorAll("#main_promo .mp");
 const filmsBlock = document.querySelector("#films");
 const form = document.querySelector("#add");
 
-headerImage.src = "img/bg2.jpg";
-headerImage.alt = "Hitman's Wife's Bodyguard";
-adv.forEach(adv => adv.remove());
-document.title = headerImage.alt;
+function init() {
+	headerImage.src = "img/bg2.jpg";
+
+	if(headerImage.src.slice(27) === "img/bg1.jpg") {
+		headerImage.alt = "Gemini Man";
+	} else if (headerImage.src.slice(27) === "img/bg2.jpg") {
+		headerImage.alt = "Hitman's Wife's Bodyguard";
+	}
+
+	document.querySelectorAll("#main_promo .mp").forEach(adv => adv.remove());
+	document.title = headerImage.alt;
+}
+init();
 
 const _DB = {
 	movies: [
@@ -26,23 +35,18 @@ const _DB = {
 form.addEventListener("submit", (e) => {
 	e.preventDefault();
 	let val = e.target.firstElementChild.value.trim();
-	let valCopy = val;
 	const check = document.querySelector('input[type="checkbox"]');
 
-	if (val !== "") {
-		if (val.length >= 21) {
-			val = `${val.slice(0, 21)}...`;
-		}
+	if (val !== "" && val.charAt(0) !== "<" && val.charAt(0) !== ">" && val.charAt(0) !== "/" && _DB.movies.indexOf(val) === -1) {
 		if (check.checked) {
-			val =[valCopy];	//added Task 1
-			console.log(`this film <${valCopy}> added to favorite`);
+			val =[val];	//added Task 1
+			console.log(`this film <${val}> added to favorite`);
 		}
 		_DB.movies.push(val);
 	}
 
 	setSort(_DB.movies);
 	createFilmsList(_DB.movies, filmsBlock);
-
 	e.target.reset();
 });
 
@@ -59,11 +63,11 @@ function createFilmsList (films, parent) {
 			parent.innerHTML += `
 				${Array.isArray(film) ?		//added Task 1
 					`<p style='color:green'>
-						${index + 1}. ${film} 
+						${index + 1}. ${film[0].length >= 21 ? film[0].slice(0, 21)+'...' : film[0]} 
 						<span data-rm>&#128465;</span>
 					</p>` : 
 					`<p>
-						${index + 1}. ${film} 
+						${index + 1}. ${film.length >= 21 ? film.slice(0, 21)+'...' : film} 
 						<span data-rm>&#128465;</span>
 					</p>`			
 				}						
@@ -94,24 +98,29 @@ function createFilmsList (films, parent) {
 			parent.innerHTML += `
 				${Array.isArray(film) ?		//added Task 1
 					`<p style='color:green'>
-						${index + 1}. ${film} 
+						${index + 1}. ${film[0].length >= 21 ? film[0].slice(0, 21)+'...' : film[0]} 
 						<span data-rm>&#128465;</span>
 					</p>` : 
 					`<p>
-						${index + 1}. ${film} 
+						${index + 1}. ${film.length >= 21 ? film.slice(0, 21)+'...' : film} 
 						<span data-rm>&#128465;</span>
 					</p>`			
 				}						
 			`;
 			console.log("length: " + _DB.movies.length);		
-		});		
+		});
+		
+		removeFilmFromList("[data-rm]");
 	}
+}
 
-	document.querySelectorAll("[data-rm]").forEach((btn, i) => {
+function removeFilmFromList(selector) {
+	setSort(_DB.movies);
+	document.querySelectorAll(selector).forEach((btn, i) => {
 		btn.addEventListener("click", () => {
 			btn.parentElement.remove();
 			_DB.movies.splice(i, 1);
-			createFilmsList(films, parent);
+			createFilmsList(_DB.movies, filmsBlock);
 		});
 	});
 }
